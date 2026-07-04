@@ -46,6 +46,7 @@ const (
 	commandCopy
 	commandExport
 	commandNew
+	commandLoop
 	commandUnknown
 )
 
@@ -288,6 +289,13 @@ var commandDefinitions = []commandDefinition{
 		group:       commandGroupSession,
 		description: "Write the conversation transcript to a file.",
 		kind:        commandExport,
+	},
+	{
+		name:        "/loop",
+		usage:       "/loop [interval] <prompt|/command> | /loop list | /loop stop [id|all]",
+		group:       commandGroupSession,
+		description: "Repeat a prompt or command on an interval (e.g. /loop 5m /babysit-prs), or self-paced when no interval is given.",
+		kind:        commandLoop,
 	},
 	{
 		name:        "/help",
