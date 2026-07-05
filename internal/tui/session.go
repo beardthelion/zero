@@ -201,6 +201,10 @@ func (m model) handleResumeCommand(args string) (model, string) {
 		return m, "Sessions\nerror: " + err.Error()
 	}
 
+	// Capture the current session id before switching so loops are only torn down
+	// on a real change — `/resume latest` or `/resume <currentID>` can resolve to
+	// the already-active session, whose loops belong to it, not a "previous" one.
+	previousID := m.activeSession.SessionID
 	m.activeSession = *session
 	m.sessionEvents = append([]sessions.Event{}, events...)
 	if m.providerName == "" {
@@ -209,9 +213,10 @@ func (m model) handleResumeCommand(args string) (model, string) {
 	if m.modelName == "" {
 		m.modelName = session.ModelID
 	}
-	// The resumed conversation is a different session; drop any loops the previous
-	// one left running so they don't fire into it.
-	m, loopsCleared := m.clearLoopsForSessionSwitch()
+	loopsCleared := 0
+	if session.SessionID != previousID {
+		m, loopsCleared = m.clearLoopsForSessionSwitch()
+	}
 
 	rows := initialTranscript()
 	rows = appendRow(rows, rowSystem, m.formatResumeSummary(*session, len(events)))
